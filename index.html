@@ -382,19 +382,18 @@
 
 <script>
 const STORAGE_KEY = 'dimasV15';
-const PHYSICAL = ['mandiri','cash','blu','btn','ewallet','bri'];
+const PHYSICAL = ['mandiri','blu','cash','ovo','gopay','shopee'];
 
 const TARGET_LONG = 2500000;
 const TARGET_SHORT = 500000;
-const TARGET_TOTAL = TARGET_LONG + TARGET_SHORT; // 3jt / bulan
+const TARGET_TOTAL = TARGET_LONG + TARGET_SHORT;
 
 const SUBCATS = {
-  Needs:['Makan Pokok','Cicilan','Kirim Mama','Kos','Langganan Digital','Listrik','Pulsa Data','Laundry','Transport/Bensin','Pajak Motor','Kesehatan','Darurat / Lainnya'],
-  Wants:['Rokok','Nongkrong / Kopi','Skincare','Jajan','Belanja','Hiburan','Lainnya']
+  Needs:['Makan Pokok','Langganan Digital','Pulsa Data','Transport/Bensin','Pajak Motor','Kesehatan','Darurat / Lainnya'],
+  Wants:['Nongkrong / Kopi','Skincare & Makeup','Jajan','Belanja','Hiburan','Lainnya']
 };
 
-/* ---------- STATE ---------- */
-function emptyAcc(){ return {mandiri:0,cash:0,blu:0,btn:0,ewallet:0,bri:0}; }
+function emptyAcc(){ return {mandiri:0, blu:0, cash:0, ovo:0, gopay:0, shopee:0}; }
 function emptyState(){
   return {
     schema:15,
@@ -409,10 +408,9 @@ function emptyState(){
       {key:'PEMKOT', day:0, est:1900000, certain:false},
       {key:'Freelance', day:0, est:0, certain:false}
     ],
-    // V15 Custom: State label akun agar bisa dikustomisasi user
     accLabels: {
-      mandiri: 'Livin Mandiri', cash: 'Cash', blu: 'bluBCA',
-      btn: 'Bale by BTN', ewallet: 'E-Wallet', bri: 'BRImo'
+      mandiri: 'Livin by Mandiri', blu: 'Blu by BCA', cash: 'Cash',
+      ovo: 'Ovo', gopay: 'Gopay', shopee: 'Shopeepay'
     },
     meta:{ month: monthKey(), lastBackup:null, userName:'' }
   };
