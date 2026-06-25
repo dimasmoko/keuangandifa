@@ -360,19 +360,6 @@
     <div id="ledger" class="scrolly" style="max-height:340px"></div>
   </div>
 
-  <div class="panel pg pg-riwayat">
-    <div class="between" style="margin-bottom:10px">
-      <div class="label">Sinkron Google Sheets</div>
-      <span id="syncStatus" class="xxs muted"></span>
-    </div>
-    <label class="row xs muted" style="align-items:center; margin-bottom:11px; cursor:pointer; gap:7px">
-      <input type="checkbox" id="autoSyncToggle" style="width:auto" onchange="toggleAutoSync(this)">
-      <span>Sinkron otomatis tiap ada transaksi baru</span>
-    </label>
-    <button class="btn btn-blue" onclick="syncToSheets(false)">☁️ SINKRON SEKARANG</button>
-    <button class="btn btn-ghost" style="margin-top:8px; font-size:11px; padding:10px" onclick="setSheetUrl()">🔗 Atur URL Google Sheets</button>
-  </div>
-
   <div class="between pg pg-riwayat" style="padding:0 4px">
     <span id="backupStatus" class="xxs muted"></span>
     <button class="link" style="color:var(--cyan)" onclick="exportData()">Cadangkan Sekarang</button>
@@ -518,7 +505,7 @@ function daysLeft(){
   return Math.max(1, end.getDate()-d.getDate()+1);
 }
 
-function pushLog(o){ state.logs.push({id:genId(), date:nowISO(), status:'active', ...o}); save(); render(); scheduleSync(); }
+function pushLog(o){ state.logs.push({id:genId(), date:nowISO(), status:'active', ...o}); save(); render(); }
 
 /* ---------- FORM & SELECTS ---------- */
 let curType='Spend';
@@ -1111,83 +1098,6 @@ function toast(msg){
   clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2600);
 }
 
-/* ---------- SINKRON SHEETS ---------- */
-const SYNC_URL_KEY  = 'sheetSyncUrl';
-const SYNC_AUTO_KEY = 'sheetAutoSync';
-const SYNC_LAST_KEY = 'sheetLastSync';
-const DEFAULT_SYNC_URL = 'https://script.google.com/macros/s/AKfycbzSyhJnkRxj447xYacRbuMF1n_axr--w-TX3Z_jIbcc3f232So8eC2GvQhsG9atZ0s/exec';
-
-function getSyncUrl(){ return localStorage.getItem(SYNC_URL_KEY) || DEFAULT_SYNC_URL; }
-function isAutoSync(){ return localStorage.getItem(SYNC_AUTO_KEY) !== 'off'; } 
-
-let syncTimer=null, syncing=false;
-function scheduleSync(){
-  if(!isAutoSync()) return;
-  clearTimeout(syncTimer);
-  syncTimer=setTimeout(()=>syncToSheets(true), 1500); 
-}
-
-async function syncToSheets(silent){
-  const url=getSyncUrl();
-  if(!url){ if(!silent) toast('URL Google Sheets belum diatur'); return; }
-  if(syncing) return;
-  if(typeof navigator!=='undefined' && navigator.onLine===false){
-    if(!silent) toast('Tidak ada internet — sinkron ditunda');
-    return;
-  }
-  syncing=true; updateSyncStatus();
-  try{
-    await fetch(url, {
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ logs: state.logs })
-    });
-    localStorage.setItem(SYNC_LAST_KEY, String(Date.now()));
-    if(!silent) toast('Terkirim ke Sheets ✓');
-  }catch(e){
-    if(!silent) toast('Gagal sinkron — cek internet');
-  }finally{
-    syncing=false; updateSyncStatus();
-  }
-}
-
-function toggleAutoSync(el){
-  localStorage.setItem(SYNC_AUTO_KEY, el.checked ? 'on' : 'off');
-  toast(el.checked ? 'Sinkron otomatis: AKTIF' : 'Sinkron otomatis: NONAKTIF');
-}
-
-function setSheetUrl(){
-  const cur=getSyncUrl();
-  const u=prompt('URL Google Apps Script:', cur);
-  if(u===null) return;
-  const v=u.trim();
-  if(v && !/\/exec$/.test(v)){ if(!confirm('URL biasanya diakhiri /exec. Tetap simpan?')) return; }
-  localStorage.setItem(SYNC_URL_KEY, v);
-  toast('URL Google Sheets disimpan');
-  updateSyncStatus();
-}
-
-function syncTimeAgo(ts){
-  const s=Math.floor((Date.now()-ts)/1000);
-  if(s<60) return 'barusan';
-  const m=Math.floor(s/60); if(m<60) return m+' menit lalu';
-  const h=Math.floor(m/60); if(h<24) return h+' jam lalu';
-  return Math.floor(h/24)+' hari lalu';
-}
-function updateSyncStatus(){
-  const el=document.getElementById('syncStatus'); if(!el) return;
-  if(syncing){ el.innerText='Mengirim ke Sheets…'; el.style.color='var(--amber)'; return; }
-  const t=localStorage.getItem(SYNC_LAST_KEY);
-  el.innerText = t ? ('Terakhir sinkron: '+syncTimeAgo(Number(t))) : 'Belum pernah sinkron';
-  el.style.color='var(--slate)';
-}
-function initSync(){
-  const tg=document.getElementById('autoSyncToggle');
-  if(tg) tg.checked=isAutoSync();
-  updateSyncStatus();
-}
-
 /* ---------- THEME SWITCHER ---------- */
 function applyChartTheme(){
   if(!chart) return;
@@ -1217,7 +1127,6 @@ setType('Spend');
 render(); 
 showPage('home'); 
 applyChartTheme(); 
-initSync();
 </script>
 </body>
 </html>
